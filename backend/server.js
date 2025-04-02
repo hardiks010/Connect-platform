@@ -116,6 +116,7 @@ app.post("/send-chat-request", async(req,res)=>{
     });
 
   console.log(`${sender} sent a chat request to ${receiver} for ${topic}`)
+  res.json({ success: true, message: "Chat request sent!" });
 
     
 
@@ -124,6 +125,24 @@ app.post("/send-chat-request", async(req,res)=>{
     res.status(500).json({ error: "Failed to send chat request" });
   }
 })
+
+app.get("/pending-requests/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const ref = db.ref(`requests/${username}`);
+    const snapshot = await ref.once("value");
+    
+    if (!snapshot.exists()) {
+      return res.json([]); // No pending requests
+    }
+    
+    const requests = Object.values(snapshot.val());
+    res.json(requests);
+  } catch (error) {
+    console.error("Error fetching pending requests:", error);
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
+});
 
 
 
